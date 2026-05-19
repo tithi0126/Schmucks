@@ -162,6 +162,12 @@ class _HomeScreenState extends State<HomeScreen> {
             border: Border(
               bottom: BorderSide(color: Colors.black, width: 4.0),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black,
+                offset: Offset(0, 4),
+              ),
+            ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -676,6 +682,12 @@ class _HomeScreenState extends State<HomeScreen> {
             border: Border(
               bottom: BorderSide(color: Colors.black, width: 4.0),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black,
+                offset: Offset(0, 4),
+              ),
+            ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -964,6 +976,12 @@ class _HomeScreenState extends State<HomeScreen> {
             border: Border(
               bottom: BorderSide(color: Colors.black, width: 4.0),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black,
+                offset: Offset(0, 4),
+              ),
+            ],
           ),
           child: const ComicText(
             text: 'YOUR CART',
@@ -1484,6 +1502,12 @@ class _HomeScreenState extends State<HomeScreen> {
             border: Border(
               bottom: BorderSide(color: Colors.black, width: 4.0),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black,
+                offset: Offset(0, 4),
+              ),
+            ],
           ),
           child: const ComicText(
             text: "MY PROFILE",
@@ -1862,13 +1886,19 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildBottomNav() {
     final double bottomPadding = MediaQuery.of(context).padding.bottom;
     return Container(
-      height: 70 + bottomPadding,
-      padding: EdgeInsets.only(bottom: bottomPadding),
-      decoration: const BoxDecoration(
-        color: Color(0xFF0C3827), // Solid green bottom nav background
-        border: Border(
-          top: BorderSide(color: Colors.black, width: 4.0),
-        ),
+      margin: EdgeInsets.fromLTRB(16, 0, 16, bottomPadding > 0 ? bottomPadding : 12),
+      height: 64,
+      decoration: BoxDecoration(
+        color: const Color(0xFF0C3827), // Solid green bottom nav background
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black, width: 3.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black,
+            offset: Offset(0, 4),
+            blurRadius: 0,
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1899,26 +1929,39 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Icon
             Stack(
               alignment: Alignment.topRight,
               children: [
-                Icon(
-                  isActive ? activeIcon : inactiveIcon,
-                  color: isActive ? const Color(0xFFFFC5C5) : Colors.white60, // Pink highlight active, white60 inactive
-                  size: 26,
-                )
-                .animate(target: isActive ? 1.0 : 0.0)
-                .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.15, 1.15), duration: 250.ms, curve: Curves.elasticOut),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isActive ? 16 : 8,
+                    vertical: isActive ? 4 : 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isActive ? const Color(0xFFFFC5C5) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    border: isActive
+                        ? Border.all(color: Colors.black, width: 2.0)
+                        : Border.all(color: Colors.transparent, width: 2.0),
+                  ),
+                  child: Icon(
+                    isActive ? activeIcon : inactiveIcon,
+                    color: isActive ? Colors.black : Colors.white70,
+                    size: 20,
+                  )
+                  .animate(target: isActive ? 1.0 : 0.0)
+                  .scale(begin: const Offset(0.95, 0.95), end: const Offset(1.1, 1.1), duration: 200.ms, curve: Curves.elasticOut),
+                ),
                 
-                // Overlay item count badge specifically for Order (Cart) tab
                 if (isCart && _cartTotalItems > 0)
                   Transform.translate(
-                    offset: const Offset(8, -8),
+                    offset: const Offset(6, -6),
                     child: Container(
                       padding: const EdgeInsets.all(3),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFC5C5), // Soft Pink badge on green nav bar
+                        color: const Color(0xFFFFC5C5), // Soft Pink badge
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.black, width: 1.5),
                       ),
@@ -1937,15 +1980,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   .scale(begin: const Offset(0.6, 0.6), end: const Offset(1.0, 1.0), duration: 500.ms, curve: Curves.elasticOut),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
 
-            // Label Text in classy sans-serif
             Text(
               label,
               style: GoogleFonts.outfit(
-                color: isActive ? const Color(0xFFFFC5C5) : Colors.white60, // Pink active, white60 inactive
+                color: isActive ? const Color(0xFFFFC5C5) : Colors.white70,
                 fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
-                fontSize: 12,
+                fontSize: 10,
               ),
             ),
           ],

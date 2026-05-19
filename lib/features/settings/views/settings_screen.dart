@@ -143,6 +143,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         border: Border(
           bottom: BorderSide(color: Colors.black, width: 4.0),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [

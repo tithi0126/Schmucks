@@ -105,6 +105,12 @@ class OrderHistoryScreen extends StatelessWidget {
         border: Border(
           bottom: BorderSide(color: Colors.black, width: 4.0),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
