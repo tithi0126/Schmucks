@@ -25,29 +25,71 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String _selectedSize = 'M';
   String _selectedSweetness = '100%';
   String _selectedMilk = 'Regular';
+  String _selectedWarmth = 'Warmed';
+  String _selectedTopping = 'None';
+
+  int get _itemsAlreadyInCartCount {
+    int count = 0;
+    for (var item in widget.controller.cart) {
+      if (item.product.id == widget.product.id ||
+          item.product.id.startsWith('${widget.product.id}_')) {
+        count += item.quantity;
+      }
+    }
+    return count;
+  }
 
   double get _calculatedPrice {
     double base = widget.product.price;
-    if (_selectedSize == 'S') base -= 20;
-    if (_selectedSize == 'L') base += 40;
+    final bool isBeverage = widget.product.category == 'COFFEE' ||
+        widget.product.category == 'MATCHA' ||
+        widget.product.category == 'FRAPPES' ||
+        widget.product.category == 'SLUSHIES';
 
-    if (_selectedMilk == 'Oat Milk') base += 40;
-    if (_selectedMilk == 'Almond Milk') base += 50;
+    if (isBeverage) {
+      if (_selectedSize == 'S') base -= 20;
+      if (_selectedSize == 'L') base += 40;
+
+      if (_selectedMilk == 'Oat Milk') base += 40;
+      if (_selectedMilk == 'Almond Milk') base += 50;
+    } else {
+      if (_selectedTopping == 'Cream Cheese') base += 30;
+      if (_selectedTopping == 'Extra Cheddar') base += 40;
+    }
 
     return base;
   }
 
   void _addItemToCart() {
     HapticFeedback.heavyImpact();
+    final bool isBeverage = widget.product.category == 'COFFEE' ||
+        widget.product.category == 'MATCHA' ||
+        widget.product.category == 'FRAPPES' ||
+        widget.product.category == 'SLUSHIES';
+
     // Build a customized CoffeeItem for the cart to represent selection
-    final customizedProduct = CoffeeItem(
-      id: '${widget.product.id}_${_selectedSize}_${_selectedMilk.replaceAll(' ', '')}',
-      name: '${widget.product.name} ($_selectedSize, ${widget.product.category == 'COFFEE' || widget.product.category == 'MATCHA' ? _selectedMilk : 'Normal'})',
-      price: _calculatedPrice,
-      description: widget.product.description,
-      imagePath: widget.product.imagePath,
-      category: widget.product.category,
-    );
+    final CoffeeItem customizedProduct;
+    if (isBeverage) {
+      customizedProduct = CoffeeItem(
+        id: '${widget.product.id}_${_selectedSize}_${_selectedMilk.replaceAll(' ', '')}_${_selectedSweetness.replaceAll('%', '')}',
+        name: '${widget.product.name} ($_selectedSize, $_selectedMilk, $_selectedSweetness Sugar)',
+        price: _calculatedPrice,
+        description: widget.product.description,
+        imagePath: widget.product.imagePath,
+        category: widget.product.category,
+      );
+    } else {
+      customizedProduct = CoffeeItem(
+        id: '${widget.product.id}_${_selectedWarmth.replaceAll(' ', '')}_${_selectedTopping.replaceAll(' ', '')}',
+        name: _selectedTopping == 'None'
+            ? '${widget.product.name} ($_selectedWarmth)'
+            : '${widget.product.name} ($_selectedWarmth, Extra $_selectedTopping)',
+        price: _calculatedPrice,
+        description: widget.product.description,
+        imagePath: widget.product.imagePath,
+        category: widget.product.category,
+      );
+    }
 
     widget.controller.addToCart(customizedProduct);
 
@@ -86,7 +128,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final Size size = MediaQuery.of(context).size;
     final bool isBeverage = widget.product.category == 'COFFEE' ||
         widget.product.category == 'MATCHA' ||
-        widget.product.category == 'FRAPPES';
+        widget.product.category == 'FRAPPES' ||
+        widget.product.category == 'SLUSHIES';
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFC5C5),
@@ -115,6 +158,40 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         // Title and Price Box
                         _buildTitlePriceBox(),
 
+                        if (_itemsAlreadyInCartCount > 0) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0C3827),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.black, width: 2.5),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.shopping_bag_rounded, color: Color(0xFFFFC5C5), size: 18),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    '🎉 $_itemsAlreadyInCartCount unit(s) of this item already added to your cart!',
+                                    style: GoogleFonts.outfit(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
                         const SizedBox(height: 20),
 
                         // Description
@@ -122,13 +199,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
                         const SizedBox(height: 24),
 
-                        // Customizations (Only show size/milk for beverages)
+                        // Customizations
                         if (isBeverage) ...[
                           _buildSizeSelection(),
                           const SizedBox(height: 20),
                           _buildSweetnessSelection(),
                           const SizedBox(height: 20),
                           _buildMilkSelection(),
+                          const SizedBox(height: 30),
+                        ] else ...[
+                          _buildWarmthSelection(),
+                          const SizedBox(height: 20),
+                          _buildToppingSelection(),
                           const SizedBox(height: 30),
                         ],
                       ],
@@ -526,10 +608,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ],
                 ),
                 child: Text(
-                  'ADD TO ORDER ☕',
+                  _itemsAlreadyInCartCount > 0
+                      ? 'ADD TO ORDER ($_itemsAlreadyInCartCount IN CART) ☕'
+                      : 'ADD TO ORDER ☕',
                   style: GoogleFonts.lilitaOne(
                     color: const Color(0xFF0C3827),
-                    fontSize: 14,
+                    fontSize: _itemsAlreadyInCartCount > 0 ? 11 : 14,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -538,6 +622,122 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildWarmthSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'SERVING STYLE:',
+          style: GoogleFonts.lilitaOne(
+            color: const Color(0xFF0C3827),
+            fontSize: 14,
+            letterSpacing: 0.8,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: ['Room Temp', 'Warmed'].map((style) {
+            bool isSelected = _selectedWarmth == style;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() {
+                    _selectedWarmth = style;
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFF0C3827) : const Color(0xFFF9F6EE),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.black, width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black,
+                        offset: isSelected ? const Offset(1, 2) : const Offset(0, 1.5),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    style.toUpperCase(),
+                    style: GoogleFonts.lilitaOne(
+                      color: isSelected ? const Color(0xFFFFC5C5) : const Color(0xFF0C3827),
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildToppingSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'EXTRA TOPPING / FILLING:',
+          style: GoogleFonts.lilitaOne(
+            color: const Color(0xFF0C3827),
+            fontSize: 14,
+            letterSpacing: 0.8,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: ['None', 'Cream Cheese', 'Extra Cheddar'].map((topping) {
+            bool isSelected = _selectedTopping == topping;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() {
+                    _selectedTopping = topping;
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFF0C3827) : const Color(0xFFF9F6EE),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.black, width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black,
+                        offset: isSelected ? const Offset(1, 2) : const Offset(0, 1.5),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    topping == 'None'
+                        ? 'NONE'
+                        : topping == 'Cream Cheese'
+                            ? '+ CREAM CHEESE'
+                            : '+ CHEDDAR',
+                    style: GoogleFonts.lilitaOne(
+                      color: isSelected ? const Color(0xFFFFC5C5) : const Color(0xFF0C3827),
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 }

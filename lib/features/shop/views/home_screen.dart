@@ -72,51 +72,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // Add Item to Cart with Animation & Haptic
-  void _addToCart(CoffeeItem product) {
-    HapticFeedback.lightImpact();
-    _controller.addToCart(product);
-
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF0C3827),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-          side: const BorderSide(color: Colors.black, width: 2),
-        ),
-        duration: const Duration(seconds: 2),
-        content: Row(
-          children: [
-            const Icon(Icons.shopping_cart_outlined, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                '${product.name} added to order!',
-                style: GoogleFonts.playfairDisplay(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                _controller.setTab(2); // Jump to cart tab
-              },
-              child: Text(
-                'VIEW CART',
-                style: GoogleFonts.lilitaOne(
-                  color: Colors.black,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -873,7 +828,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       
                       // Add Button
                       GestureDetector(
-                        onTap: () => _addToCart(product),
+                        onTap: () {
+                          HapticFeedback.mediumImpact();
+                          Navigator.of(context).push(
+                            PageRouteBuilder(
+                              transitionDuration: const Duration(milliseconds: 400),
+                              pageBuilder: (context, animation, secondaryAnimation) => ProductDetailScreen(
+                                product: product,
+                                controller: _controller,
+                              ),
+                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                return SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: const Offset(0.0, 1.0),
+                                    end: Offset.zero,
+                                  ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutBack)),
+                                  child: child,
+                                );
+                              },
+                            ),
+                          );
+                        },
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
