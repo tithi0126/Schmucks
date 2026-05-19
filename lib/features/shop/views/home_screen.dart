@@ -1886,19 +1886,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildBottomNav() {
     final double bottomPadding = MediaQuery.of(context).padding.bottom;
     return Container(
-      margin: EdgeInsets.fromLTRB(16, 0, 16, bottomPadding > 0 ? bottomPadding : 12),
-      height: 64,
-      decoration: BoxDecoration(
-        color: const Color(0xFF0C3827), // Solid green bottom nav background
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black, width: 3.5),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black,
-            offset: Offset(0, 4),
-            blurRadius: 0,
-          ),
-        ],
+      height: 62 + bottomPadding,
+      padding: EdgeInsets.only(bottom: bottomPadding),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0C3827), // Solid green bottom nav background
+        border: Border(
+          top: BorderSide(color: Colors.black, width: 3.5),
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1931,33 +1925,19 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Stack(
               alignment: Alignment.topRight,
+              clipBehavior: Clip.none,
               children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeInOut,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isActive ? 16 : 8,
-                    vertical: isActive ? 4 : 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isActive ? const Color(0xFFFFC5C5) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
-                    border: isActive
-                        ? Border.all(color: Colors.black, width: 2.0)
-                        : Border.all(color: Colors.transparent, width: 2.0),
-                  ),
-                  child: Icon(
-                    isActive ? activeIcon : inactiveIcon,
-                    color: isActive ? Colors.black : Colors.white70,
-                    size: 20,
-                  )
-                  .animate(target: isActive ? 1.0 : 0.0)
-                  .scale(begin: const Offset(0.95, 0.95), end: const Offset(1.1, 1.1), duration: 200.ms, curve: Curves.elasticOut),
-                ),
+                Icon(
+                  isActive ? activeIcon : inactiveIcon,
+                  color: isActive ? const Color(0xFFFFC5C5) : Colors.white.withOpacity(0.55),
+                  size: 24,
+                )
+                .animate(target: isActive ? 1.0 : 0.0)
+                .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.15, 1.15), duration: 200.ms, curve: Curves.easeOut),
                 
                 if (isCart && _cartTotalItems > 0)
                   Transform.translate(
-                    offset: const Offset(6, -6),
+                    offset: const Offset(8, -6),
                     child: Container(
                       padding: const EdgeInsets.all(3),
                       decoration: BoxDecoration(
@@ -1980,16 +1960,40 @@ class _HomeScreenState extends State<HomeScreen> {
                   .scale(begin: const Offset(0.6, 0.6), end: const Offset(1.0, 1.0), duration: 500.ms, curve: Curves.elasticOut),
               ],
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 3),
 
-            Text(
-              label,
-              style: GoogleFonts.outfit(
-                color: isActive ? const Color(0xFFFFC5C5) : Colors.white70,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
-                fontSize: 10,
+            if (isActive)
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: GoogleFonts.lilitaOne(
+                      color: const Color(0xFFFFC5C5),
+                      fontSize: 11,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Container(
+                    width: 5,
+                    height: 5,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFFC5C5),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
+              )
+            else
+              Text(
+                label,
+                style: GoogleFonts.outfit(
+                  color: Colors.white.withOpacity(0.55),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                ),
               ),
-            ),
           ],
         ),
       ),
