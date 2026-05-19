@@ -246,57 +246,60 @@ class _HomeScreenState extends State<HomeScreen> {
         Expanded(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.zero,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 2a. Search Bar
-                Container(
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: AppColors.creamPaper,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.cartoonBlack, width: 3),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: AppColors.cartoonBlack,
-                        offset: Offset(0, 4),
-                        blurRadius: 0,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 14),
-                      const Icon(
-                        Icons.search_rounded,
-                        color: AppColors.forestGreen,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          onChanged: _controller.setSearchQuery,
-                          cursorColor: AppColors.forestGreen,
-                          style: GoogleFonts.playfairDisplay(
-                            color: AppColors.forestGreen,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'Search for your favorite coffee/snacks...',
-                            hintStyle: GoogleFonts.playfairDisplay(
-                              color: AppColors.forestGreen.withOpacity(0.5),
-                              fontSize: 14,
-                              fontStyle: FontStyle.italic,
-                              fontWeight: FontWeight.w600,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: AppColors.creamPaper,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.cartoonBlack, width: 3),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: AppColors.cartoonBlack,
+                          offset: Offset(0, 4),
+                          blurRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 14),
+                        const Icon(
+                          Icons.search_rounded,
+                          color: AppColors.forestGreen,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextField(
+                            onChanged: _controller.setSearchQuery,
+                            cursorColor: AppColors.forestGreen,
+                            style: GoogleFonts.playfairDisplay(
+                              color: AppColors.forestGreen,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
                             ),
-                            border: InputBorder.none,
-                            isDense: true,
+                            decoration: InputDecoration(
+                              hintText: 'Search for your favorite coffee/snacks...',
+                              hintStyle: GoogleFonts.playfairDisplay(
+                                color: AppColors.forestGreen.withOpacity(0.5),
+                                fontSize: 14,
+                                fontStyle: FontStyle.italic,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              border: InputBorder.none,
+                              isDense: true,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 )
                 .animate()
@@ -305,21 +308,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SizedBox(height: 18),
 
-                // 2b. High-Fidelity Banner
+                // 2b. High-Fidelity Banner (Edge-to-Edge)
                 Container(
                   height: 160,
                   width: double.infinity,
                   clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.black, width: 3.5),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black,
-                        offset: Offset(0, 5),
-                        blurRadius: 0,
-                      ),
-                    ],
+                  decoration: const BoxDecoration(
+                    color: Colors.black,
+                    border: Border(
+                      top: BorderSide(color: Colors.black, width: 4.0),
+                      bottom: BorderSide(color: Colors.black, width: 4.0),
+                    ),
                   ),
                   child: Transform.scale(
                     scale: 1.15, // Zoom in slightly to cut out generated margins and fill the frame perfectly
@@ -330,25 +329,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 )
                 .animate()
-                .fadeIn(delay: 150.ms, duration: 500.ms)
-                .scale(begin: const Offset(0.95, 0.95)),
+                .fadeIn(delay: 150.ms, duration: 500.ms),
 
                 const SizedBox(height: 24),
 
                 // Instagram Bio Card
-                _buildInstagramBioCard(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildInstagramBioCard(),
+                ),
 
                 const SizedBox(height: 24),
 
                 // 2c. Categories Title
-                const ComicText(
-                  text: 'CATEGORIES',
-                  fontSize: 26,
-                  fillColor: Color(0xFFFFC5C5),
-                  strokeColor: Colors.black,
-                  strokeWidth: 4.5,
-                  shadowColor: Color(0xFFDF533D),
-                  shadowOffset: Offset(2.5, 2.5),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: ComicText(
+                    text: 'CATEGORIES',
+                    fontSize: 26,
+                    fillColor: Color(0xFFFFC5C5),
+                    strokeColor: Colors.black,
+                    strokeWidth: 4.5,
+                    shadowColor: Color(0xFFDF533D),
+                    shadowOffset: Offset(2.5, 2.5),
+                  ),
                 ),
 
                 const SizedBox(height: 14),
@@ -359,6 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     children: [
                       _buildCategoryItem('COFFEE', 'assets/images/category_coffee.png'),
                       _buildCategoryItem('MATCHA', 'assets/images/popular_matcha.png'),
@@ -372,14 +377,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 24),
 
                 // 2e. Popular Items Title
-                const ComicText(
-                  text: 'POPULAR ITEMS',
-                  fontSize: 26,
-                  fillColor: Color(0xFFFFC5C5),
-                  strokeColor: Colors.black,
-                  strokeWidth: 4.5,
-                  shadowColor: Color(0xFFDF533D),
-                  shadowOffset: Offset(2.5, 2.5),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: ComicText(
+                    text: 'POPULAR ITEMS',
+                    fontSize: 26,
+                    fillColor: Color(0xFFFFC5C5),
+                    strokeColor: Colors.black,
+                    strokeWidth: 4.5,
+                    shadowColor: Color(0xFFDF533D),
+                    shadowOffset: Offset(2.5, 2.5),
+                  ),
                 ),
 
                 const SizedBox(height: 14),
@@ -390,7 +398,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     itemCount: _products.where((p) => p.category == 'COFFEE' || p.category == 'SNACCCC' || p.category == 'MATCHA').length,
                     separatorBuilder: (context, index) => const SizedBox(width: 16),
                     itemBuilder: (context, index) {
@@ -403,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SizedBox(height: 24),
 
-                // 2g. Flat 50% OFF bottom discount banner
+                // 2g. Flat 50% OFF bottom discount banner (Edge-to-Edge)
                 GestureDetector(
                   onTap: () {
                     HapticFeedback.heavyImpact();
@@ -435,16 +443,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 150,
                     width: double.infinity,
                     clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.black, width: 3.5),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black,
-                          offset: Offset(0, 5),
-                          blurRadius: 0,
-                        ),
-                      ],
+                    decoration: const BoxDecoration(
+                      color: Colors.black,
+                      border: Border(
+                        top: BorderSide(color: Colors.black, width: 4.0),
+                        bottom: BorderSide(color: Colors.black, width: 4.0),
+                      ),
                     ),
                     child: Transform.scale(
                       scale: 1.15, // Zoom in slightly to cut out generated margins and fill the frame perfectly
