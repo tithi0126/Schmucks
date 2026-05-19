@@ -171,7 +171,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const Expanded(
             child: ComicText(
               text: 'SETTINGS',
-              fontSize: 20,
+              fontSize: 22,
               fillColor: Colors.white,
               strokeColor: Colors.black,
               strokeWidth: 4.0,

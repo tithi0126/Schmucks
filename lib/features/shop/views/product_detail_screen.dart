@@ -183,7 +183,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           Expanded(
             child: ComicText(
               text: widget.product.name,
-              fontSize: 20,
+              fontSize: 22,
               fillColor: Colors.white,
               strokeColor: Colors.black,
               strokeWidth: 4.0,

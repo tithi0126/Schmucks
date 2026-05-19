@@ -133,7 +133,7 @@ class OrderHistoryScreen extends StatelessWidget {
           const Expanded(
             child: ComicText(
               text: 'ORDER HISTORY',
-              fontSize: 20,
+              fontSize: 22,
               fillColor: Colors.white,
               strokeColor: Colors.black,
               strokeWidth: 4.0,

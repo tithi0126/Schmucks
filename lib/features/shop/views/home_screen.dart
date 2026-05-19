@@ -154,10 +154,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       key: const ValueKey('home_feed_key'),
       children: [
-        // 1. Deliver to & Notification Row (Solid Green Top Bar)
         Container(
           width: double.infinity,
-          padding: EdgeInsets.fromLTRB(20, 12 + MediaQuery.of(context).padding.top, 20, 12),
+          padding: EdgeInsets.fromLTRB(16, 12 + MediaQuery.of(context).padding.top, 16, 12),
           decoration: const BoxDecoration(
             color: Color(0xFF0C3827),
             border: Border(
@@ -217,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
                 child: Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF9F6EE),
                     shape: BoxShape.circle,
@@ -225,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     boxShadow: const [
                       BoxShadow(
                         color: Colors.black,
-                        offset: Offset(0, 3),
+                        offset: Offset(0, 2),
                         blurRadius: 0,
                       ),
                     ],
@@ -233,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: const Icon(
                     Icons.notifications_active_rounded,
                     color: Colors.black,
-                    size: 22,
+                    size: 18,
                   ),
                 ),
               ),
@@ -665,10 +664,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       key: const ValueKey('menu_view_key'),
       children: [
-        // Title Bar (Solid Green Top Bar)
         Container(
           width: double.infinity,
-          padding: EdgeInsets.fromLTRB(20, 12 + MediaQuery.of(context).padding.top, 20, 12),
+          padding: EdgeInsets.fromLTRB(16, 12 + MediaQuery.of(context).padding.top, 16, 12),
           decoration: const BoxDecoration(
             color: Color(0xFF0C3827),
             border: Border(
@@ -680,12 +678,12 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const ComicText(
                 text: 'SCHMUCKS MENU',
-                fontSize: 26,
+                fontSize: 22,
                 fillColor: Colors.white, // White fill on Green
                 strokeColor: Colors.black,
-                strokeWidth: 4.5,
+                strokeWidth: 4.0,
                 shadowColor: Color(0xFFFFC5C5), // Pink shadow pop
-                shadowOffset: Offset(2, 2),
+                shadowOffset: Offset(1.5, 1.5),
               ),
               // Small Cart Icon Button with Stagger badge count
               _buildSmallCartBadge(),
@@ -903,7 +901,7 @@ class _HomeScreenState extends State<HomeScreen> {
         alignment: Alignment.topRight,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: const Color(0xFFF9F6EE),
               shape: BoxShape.circle,
@@ -911,7 +909,7 @@ class _HomeScreenState extends State<HomeScreen> {
               boxShadow: const [
                 BoxShadow(
                   color: Colors.black,
-                  offset: Offset(0, 3),
+                  offset: Offset(0, 2),
                   blurRadius: 0,
                 ),
               ],
@@ -919,7 +917,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: const Icon(
               Icons.shopping_cart_rounded,
               color: Colors.black,
-              size: 20,
+              size: 18,
             ),
           ),
           if (_cartTotalItems > 0)
@@ -953,11 +951,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       key: const ValueKey('cart_view_key'),
       children: [
-        // Title Bar (Solid Green Top Bar)
         Container(
           width: double.infinity,
           alignment: Alignment.center,
-          padding: EdgeInsets.fromLTRB(20, 12 + MediaQuery.of(context).padding.top, 20, 12),
+          padding: EdgeInsets.fromLTRB(16, 12 + MediaQuery.of(context).padding.top, 16, 12),
           decoration: const BoxDecoration(
             color: Color(0xFF0C3827),
             border: Border(
@@ -966,12 +963,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: const ComicText(
             text: 'YOUR CART',
-            fontSize: 26,
+            fontSize: 22,
             fillColor: Colors.white, // White fill on Green
             strokeColor: Colors.black,
-            strokeWidth: 4.5,
+            strokeWidth: 4.0,
             shadowColor: Color(0xFFFFC5C5), // Pink shadow pop
-            shadowOffset: Offset(2, 2),
+            shadowOffset: Offset(1.5, 1.5),
           ),
         ),
 
@@ -1474,11 +1471,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       key: const ValueKey('profile_view_key'),
       children: [
-        // Title Bar (Solid Green Top Bar)
         Container(
           width: double.infinity,
           alignment: Alignment.center,
-          padding: EdgeInsets.fromLTRB(20, 12 + MediaQuery.of(context).padding.top, 20, 12),
+          padding: EdgeInsets.fromLTRB(16, 12 + MediaQuery.of(context).padding.top, 16, 12),
           decoration: const BoxDecoration(
             color: Color(0xFF0C3827),
             border: Border(
@@ -1487,12 +1483,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: const ComicText(
             text: "MY PROFILE",
-            fontSize: 26,
+            fontSize: 22,
             fillColor: Colors.white, // White fill on Green
             strokeColor: Colors.black,
-            strokeWidth: 4.5,
+            strokeWidth: 4.0,
             shadowColor: Color(0xFFFFC5C5), // Pink shadow pop
-            shadowOffset: Offset(2, 2),
+            shadowOffset: Offset(1.5, 1.5),
           ),
         ),
 
