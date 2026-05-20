@@ -7,7 +7,8 @@ class ShopController extends ChangeNotifier {
   String _selectedCategory = 'ALL';
   bool _couponApplied = false;
   int _orderCount = 0;
-  int _collectedStampsCount = 3;
+  int _collectedStampsCount = 0; // Default starting stamps count is 0
+  int _activeVouchersCount = 0;  // Track claimed FREE coffee vouchers
   final List<CartItem> _cart = [];
   final List<List<CartItem>> _orderHistory = [];
   String _searchQuery = '';
@@ -70,6 +71,7 @@ class ShopController extends ChangeNotifier {
   bool get couponApplied => _couponApplied;
   int get orderCount => _orderCount;
   int get collectedStampsCount => _collectedStampsCount;
+  int get activeVouchersCount => _activeVouchersCount;
   List<CartItem> get cart => List.unmodifiable(_cart);
   List<List<CartItem>> get orderHistory => _orderHistory;
   String get searchQuery => _searchQuery;
@@ -105,7 +107,7 @@ class ShopController extends ChangeNotifier {
 
   double get cartDiscount {
     if (_couponApplied) {
-      return cartSubtotal * 0.15; // 15% discount
+      return cartSubtotal * 0.5; // 50% discount
     }
     return 0.0;
   }
@@ -164,6 +166,11 @@ class ShopController extends ChangeNotifier {
 
   void setCollectedStampsCount(int val) {
     _collectedStampsCount = val;
+    notifyListeners();
+  }
+
+  void setActiveVouchersCount(int val) {
+    _activeVouchersCount = val;
     notifyListeners();
   }
 

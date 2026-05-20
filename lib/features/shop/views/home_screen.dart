@@ -11,7 +11,9 @@ import 'product_detail_screen.dart';
 import '../../orders/views/order_history_screen.dart';
 import '../../settings/views/settings_screen.dart';
 import '../../notifications/views/notification_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../widgets/polka_dot_background.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userName;
@@ -44,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int get _cartTotalItems => _controller.cartTotalItems;
   double get _cartSubtotal => _controller.cartSubtotal;
   double get _cartTotal => _controller.cartTotal;
+  double get _cartDiscount => _controller.cartDiscount;
   late String _currentUserName;
 
   @override
@@ -57,6 +60,28 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!_controller.couponApplied) {
       _controller.toggleCoupon();
     }
+    _loadLoyaltyData();
+  }
+
+  void _loadLoyaltyData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String stampsKey = 'loyalty_stamps_v2_$_currentUserName';
+    final String vouchersKey = 'loyalty_vouchers_v2_$_currentUserName';
+    
+    // Starting stamps count is 0
+    final int stamps = prefs.getInt(stampsKey) ?? 0;
+    final int vouchers = prefs.getInt(vouchersKey) ?? 0;
+    
+    _controller.setCollectedStampsCount(stamps);
+    _controller.setActiveVouchersCount(vouchers);
+  }
+
+  void _saveLoyaltyData(int stamps, int vouchers) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String stampsKey = 'loyalty_stamps_v2_$_currentUserName';
+    final String vouchersKey = 'loyalty_vouchers_v2_$_currentUserName';
+    await prefs.setInt(stampsKey, stamps);
+    await prefs.setInt(vouchersKey, vouchers);
   }
 
   void _onControllerChanged() {
@@ -77,12 +102,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFC5C5), // Same Forest Green Theme
-      body: SafeArea(
-        top: false, // Let the top bar extend underneath status bar
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: _buildSelectedView(),
-        ),
+      body: Stack(
+        children: [
+          const PolkaDotBackground(),
+          SafeArea(
+            top: false, // Let the top bar extend underneath status bar
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: _buildSelectedView(),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: _buildBottomNav(),
     );
@@ -111,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Container(
           width: double.infinity,
-          padding: EdgeInsets.fromLTRB(16, 12 + MediaQuery.of(context).padding.top, 16, 12),
+          padding: EdgeInsets.fromLTRB(16, 4 + MediaQuery.of(context).padding.top, 16, 8),
           decoration: const BoxDecoration(
             color: Color(0xFF0C3827),
             border: Border(
@@ -201,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
 
         // 2. Scrollable Body
         Expanded(
@@ -631,7 +661,7 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Container(
           width: double.infinity,
-          padding: EdgeInsets.fromLTRB(16, 12 + MediaQuery.of(context).padding.top, 16, 12),
+          padding: EdgeInsets.fromLTRB(16, 4 + MediaQuery.of(context).padding.top, 16, 8),
           decoration: const BoxDecoration(
             color: Color(0xFF0C3827),
             border: Border(
@@ -945,7 +975,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(
           width: double.infinity,
           alignment: Alignment.center,
-          padding: EdgeInsets.fromLTRB(16, 12 + MediaQuery.of(context).padding.top, 16, 12),
+          padding: EdgeInsets.fromLTRB(16, 4 + MediaQuery.of(context).padding.top, 16, 8),
           decoration: const BoxDecoration(
             color: Color(0xFF0C3827),
             border: Border(
@@ -1221,7 +1251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: GoogleFonts.playfairDisplay(color: const Color(0xFFFFC5C5), fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  '- INR ${(_cartSubtotal * 0.5).toInt()}/-',
+                  '- INR ${_cartDiscount.toInt()}/-',
                   style: GoogleFonts.playfairDisplay(color: const Color(0xFF0C3827), fontWeight: FontWeight.bold, fontSize: 15),
                 ),
               ],
@@ -1299,13 +1329,30 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
 
+    // Calculate how many items are purchased
+    final int itemsPurchased = _cart.fold(0, (sum, item) => sum + item.quantity);
+    final int oldStamps = _collectedStampsCount;
+    
+    int newStamps = oldStamps + itemsPurchased;
+    int earnedVouchers = 0;
+    while (newStamps >= 5) {
+      earnedVouchers++;
+      newStamps -= 5;
+    }
+
     // Simulate coffee brewing time
     Timer(const Duration(seconds: 3), () {
       Navigator.of(context).pop(); // Dismiss loader overlay
       
-      // Show success modal
+      // Update persistent controller states
+      final int finalVouchers = _controller.activeVouchersCount + earnedVouchers;
+      _controller.setCollectedStampsCount(newStamps);
+      _controller.setActiveVouchersCount(finalVouchers);
+      _saveLoyaltyData(newStamps, finalVouchers);
+
+      // Show success modal with correct stats
       HapticFeedback.heavyImpact();
-      _showOrderSuccessModal();
+      _showOrderSuccessModal(itemsPurchased, oldStamps, newStamps, earnedVouchers);
       
       // Save order to history before clearing
       _controller.addOrderToHistory(_cart);
@@ -1366,14 +1413,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ORDER PLACED SUCCESS POPUP
-  void _showOrderSuccessModal() {
+  void _showOrderSuccessModal(int itemsPurchased, int oldStamps, int newStamps, int earnedVouchers) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          height: 480,
+          height: 520, // Increased height to accommodate the beautiful stamps loyalty banner
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: const Color(0xFFFFC5C5),
@@ -1389,12 +1436,12 @@ class _HomeScreenState extends State<HomeScreen> {
               // Snoopy holding wood sign banner (as a celebration visual)
               Image.asset(
                 'assets/images/snoopy_welcome.png',
-                height: 180,
+                height: 160,
               )
               .animate()
               .scale(begin: const Offset(0.7, 0.7), curve: Curves.elasticOut, duration: 800.ms),
               
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               const ComicText(
                 text: 'ORDER SUCCESSFUL!',
@@ -1405,19 +1452,58 @@ class _HomeScreenState extends State<HomeScreen> {
                 shadowOffset: Offset(2.5, 2.5),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               Text(
                 'Your delicious coffee and snacks are being prepared by Snoopy. You can collect your order or wait for delivery to ${_currentUserName.split(' ')[0]}!',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.playfairDisplay(
                   color: Colors.white.withOpacity(0.9),
-                  fontSize: 14,
-                  height: 1.4,
+                  fontSize: 13,
+                  height: 1.35,
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+
+              // Gorgeous Loyalty Stamps Update Badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0C3827),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.black, width: 2.5),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black,
+                      offset: Offset(2, 2.5),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.pets_rounded, color: Color(0xFFFFC5C5), size: 20),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: Text(
+                        earnedVouchers > 0
+                            ? '🎉 Earned $itemsPurchased stamps! Got $earnedVouchers FREE COFFEE Vouchers!'
+                            : '🐾 Earned $itemsPurchased stamps! ($newStamps/5 stamps collected)',
+                        style: GoogleFonts.lilitaOne(
+                          color: Colors.white,
+                          fontSize: 12,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+              .animate()
+              .scale(delay: 350.ms, curve: Curves.elasticOut, duration: 600.ms),
+
+              const SizedBox(height: 20),
 
               GestureDetector(
                 onTap: () {
@@ -1428,25 +1514,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   });
                 },
                 child: Container(
-                  width: 200,
                   height: 50,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: const Color(0xFF0C3827),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: Colors.black, width: 3),
                     boxShadow: const [
                       BoxShadow(
                         color: Colors.black,
-                        offset: Offset(0, 3),
+                        offset: Offset(0, 4),
                       ),
                     ],
                   ),
                   child: Text(
-                    'SIP. RELAX. REPEAT.',
+                    'BACK TO SHOP',
                     style: GoogleFonts.lilitaOne(
                       color: Colors.white,
-                      fontSize: 16,
+                      fontSize: 15,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -1471,7 +1556,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(
           width: double.infinity,
           alignment: Alignment.center,
-          padding: EdgeInsets.fromLTRB(16, 12 + MediaQuery.of(context).padding.top, 16, 12),
+          padding: EdgeInsets.fromLTRB(16, 4 + MediaQuery.of(context).padding.top, 16, 8),
           decoration: const BoxDecoration(
             color: Color(0xFF0C3827),
             border: Border(
@@ -1629,17 +1714,34 @@ class _HomeScreenState extends State<HomeScreen> {
                           final bool isCollected = index < _collectedStampsCount;
                           return GestureDetector(
                             onTap: () {
-                              HapticFeedback.mediumImpact();
-                              setState(() {
-                                if (isCollected) {
-                                  _collectedStampsCount = index;
-                                } else {
-                                  _collectedStampsCount = index + 1;
-                                  if (_collectedStampsCount == 5) {
-                                    _showFreeCoffeeAwardMessage();
-                                  }
-                                }
-                              });
+                              HapticFeedback.lightImpact();
+                              ScaffoldMessenger.of(context).clearSnackBars();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  behavior: SnackBarBehavior.floating,
+                                  backgroundColor: const Color(0xFF0C3827),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: const BorderSide(color: Colors.black, width: 2.5),
+                                  ),
+                                  content: Row(
+                                    children: [
+                                      const Icon(Icons.pets_rounded, color: Color(0xFFFFC5C5)),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          '🐾 Buy 5 coffees or snacks to get a FREE one! Stamps are added automatically when placing orders.',
+                                          style: GoogleFonts.playfairDisplay(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
                             },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 300),
@@ -1702,6 +1804,138 @@ class _HomeScreenState extends State<HomeScreen> {
                 .animate()
                 .fadeIn(delay: 200.ms, duration: 400.ms)
                 .scale(begin: const Offset(0.9, 0.9)),
+
+                // 3. ACTIVE VOUCHERS CARD
+                if (_controller.activeVouchersCount > 0) ...[
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFC5C5), // Brand Pink
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.black, width: 3.5),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black,
+                          offset: Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'MY FREE COFFEE VOUCHERS',
+                              style: GoogleFonts.lilitaOne(
+                                color: const Color(0xFF0C3827),
+                                fontSize: 16,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0C3827),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.black, width: 1.8),
+                              ),
+                              child: Text(
+                                '${_controller.activeVouchersCount} CLAIMABLE',
+                                style: GoogleFonts.lilitaOne(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Show this voucher to the barista or apply at checkout to get a FREE handcrafted coffee or beverage of your choice! ☕✨',
+                          style: GoogleFonts.playfairDisplay(
+                            color: Colors.black87,
+                            fontSize: 12,
+                            height: 1.3,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        GestureDetector(
+                          onTap: () {
+                            HapticFeedback.heavyImpact();
+                            // Redeem a voucher!
+                            setState(() {
+                              _controller.setActiveVouchersCount(_controller.activeVouchersCount - 1);
+                              _saveLoyaltyData(_collectedStampsCount, _controller.activeVouchersCount);
+                            });
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  backgroundColor: const Color(0xFF0C3827),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    side: const BorderSide(color: Colors.black, width: 3.5),
+                                  ),
+                                  title: const ComicText(
+                                    text: 'VOUCHER REDEEMED!',
+                                    fontSize: 20,
+                                    fillColor: Color(0xFF0C3827),
+                                    strokeWidth: 4.0,
+                                  ),
+                                  content: Text(
+                                    '🎉 Woohoo! Your Free Coffee Voucher has been successfully applied to your next drink order! Snoopy is already grinding the beans. Enjoy! ☕🐶',
+                                    style: GoogleFonts.playfairDisplay(color: Colors.white, fontSize: 14),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(),
+                                      child: Text(
+                                        'YAY!',
+                                        style: GoogleFonts.lilitaOne(
+                                          color: const Color(0xFFFFC5C5),
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: Container(
+                            height: 48,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0C3827),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.black, width: 2.5),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              'REDEEM 1 FREE COFFEE VOUCHER 🐾',
+                              style: GoogleFonts.lilitaOne(
+                                color: Colors.white,
+                                fontSize: 13,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                  .animate()
+                  .scale(begin: const Offset(0.9, 0.9), curve: Curves.elasticOut, duration: 600.ms),
+                ],
 
                 const SizedBox(height: 24),
 
