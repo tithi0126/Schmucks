@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../widgets/comic_text.dart';
 import '../../../widgets/polka_dot_background.dart';
+import '../../auth/views/login_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final String currentName;
@@ -21,14 +23,27 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _nameController;
   bool _hapticFeedback = true;
-  bool _soundEffects = true;
-  bool _highContrast = false;
+  bool _walkPaws = true;
+  bool _brewNotifications = true;
+  bool _joinNewsletter = true;
   String _selectedAvatar = 'assets/images/category_coffee.png';
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.currentName);
+    _loadPreferences();
+  }
+
+  void _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _hapticFeedback = prefs.getBool('pref_haptics') ?? true;
+      _walkPaws = prefs.getBool('pref_walk_paws') ?? true;
+      _brewNotifications = prefs.getBool('pref_brew_notifications') ?? true;
+      _joinNewsletter = prefs.getBool('pref_newsletter') ?? true;
+      _selectedAvatar = prefs.getString('pref_avatar') ?? 'assets/images/category_coffee.png';
+    });
   }
 
   @override
@@ -37,9 +52,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 
-  void _saveSettings() {
+  void _saveSettings() async {
     HapticFeedback.heavyImpact();
-    widget.onSaveName(_nameController.text.trim().isNotEmpty ? _nameController.text.trim() : 'Vinay Shah');
+    final String newName = _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : 'Vinay Shah';
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_name', newName);
+    await prefs.setBool('pref_haptics', _hapticFeedback);
+    await prefs.setBool('pref_walk_paws', _walkPaws);
+    await prefs.setBool('pref_brew_notifications', _brewNotifications);
+    await prefs.setBool('pref_newsletter', _joinNewsletter);
+    await prefs.setString('pref_avatar', _selectedAvatar);
+
+    widget.onSaveName(newName);
     
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -60,6 +85,69 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
     Navigator.of(context).pop();
+  }
+
+  void _logOut() async {
+    HapticFeedback.heavyImpact();
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF0C3827),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: Colors.black, width: 3.5),
+          ),
+          title: const ComicText(
+            text: 'LOG OUT?',
+            fontSize: 20,
+            fillColor: Color(0xFF0C3827),
+            strokeWidth: 4.0,
+          ),
+          content: Text(
+            'Are you sure you want to log out from Schmucks? We will miss you! 🐾☕',
+            style: GoogleFonts.playfairDisplay(color: Colors.white, fontSize: 14),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'CANCEL',
+                style: GoogleFonts.lilitaOne(
+                  color: Colors.grey.shade400,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                HapticFeedback.heavyImpact();
+                Navigator.of(context).pop(); // pop dialog
+                
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('user_name'); // Clear login name
+                
+                // Navigate back to LoginScreen and clear stack
+                if (mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    (route) => false,
+                  );
+                }
+              },
+              child: Text(
+                'LOG OUT',
+                style: GoogleFonts.lilitaOne(
+                  color: const Color(0xFFFFC5C5),
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -114,6 +202,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                             child: Text(
                               'SAVE CHANGES 💾',
+                              style: GoogleFonts.lilitaOne(
+                                color: Colors.white,
+                                fontSize: 16,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Logout Button
+                        GestureDetector(
+                          onTap: _logOut,
+                          child: Container(
+                            height: 56,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFDF533D), // Premium Coral-Red
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.black, width: 3.5),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              'LOG OUT 🐾👋',
                               style: GoogleFonts.lilitaOne(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -265,8 +383,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               'assets/images/category_coffee.png',
-              'assets/images/category_matcha.png',
               'assets/images/category_frappes.png',
+              'assets/images/category_slushies.png',
             ].map((path) {
               bool isSel = _selectedAvatar == path;
               return GestureDetector(
@@ -327,24 +445,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 16),
           _buildToggleRow(
-            title: 'Coffee Brewing Sounds',
-            subtitle: 'Satisfying bubbling alerts',
-            value: _soundEffects,
+            title: 'Walk Paw Background',
+            subtitle: 'Show walking dog paw prints dynamically',
+            value: _walkPaws,
             onChanged: (val) {
               setState(() {
-                _soundEffects = val;
+                _walkPaws = val;
               });
               HapticFeedback.selectionClick();
             },
           ),
           const SizedBox(height: 16),
           _buildToggleRow(
-            title: 'High Contrast Mode',
-            subtitle: 'Bold ink outlined neobrutalism',
-            value: _highContrast,
+            title: 'Brew Alerts',
+            subtitle: 'Receive alerts when Snoopy finishes brewing',
+            value: _brewNotifications,
             onChanged: (val) {
               setState(() {
-                _highContrast = val;
+                _brewNotifications = val;
+              });
+              HapticFeedback.selectionClick();
+            },
+          ),
+          const SizedBox(height: 16),
+          _buildToggleRow(
+            title: 'Weekly Vouchers',
+            subtitle: 'Receive discount coupons & special codes',
+            value: _joinNewsletter,
+            onChanged: (val) {
+              setState(() {
+                _joinNewsletter = val;
               });
               HapticFeedback.selectionClick();
             },
