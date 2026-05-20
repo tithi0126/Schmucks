@@ -53,38 +53,40 @@ class OrderHistoryScreen extends StatelessWidget {
                             total: total,
                           );
                         }),
-                        const SizedBox(height: 24),
+                      ] else ...[
+                        const SizedBox(height: 80),
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.receipt_long_rounded, size: 64, color: Color(0xFF0C3827)),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No orders placed yet! 🐾',
+                                style: GoogleFonts.lilitaOne(
+                                  color: const Color(0xFF0C3827),
+                                  fontSize: 20,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 32),
+                                child: Text(
+                                  'Order some delicious coffee or snacks from the menu and they will show up here immediately!',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.playfairDisplay(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                        .animate()
+                        .scale(begin: const Offset(0.9, 0.9), curve: Curves.elasticOut, duration: 600.ms),
                       ],
-
-                      const ComicText(
-                        text: 'PAST ORDERS',
-                        fontSize: 20,
-                        fillColor: Colors.white,
-                        strokeWidth: 4.0,
-                      ),
-                      const SizedBox(height: 12),
-
-                      _buildOrderCard(
-                        id: 'SCHM-3788',
-                        date: 'Yesterday, 4:32 PM',
-                        status: 'Completed ✅',
-                        itemsText: '1x ICE LATTE (M), 1x BEGAL (Normal)',
-                        total: 430,
-                      ),
-                      _buildOrderCard(
-                        id: 'SCHM-3691',
-                        date: '14 May 2026, 11:20 AM',
-                        status: 'Completed ✅',
-                        itemsText: '1x ICED MATCHA LATTE (S, Oat Milk)',
-                        total: 230,
-                      ),
-                      _buildOrderCard(
-                        id: 'SCHM-3542',
-                        date: '08 May 2026, 6:15 PM',
-                        status: 'Completed ✅',
-                        itemsText: '2x CHOCO FRAPPE (L), 2x BEGAL (Normal)',
-                        total: 1040,
-                      ),
                     ],
                   ),
                 ),
